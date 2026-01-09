@@ -1,0 +1,54 @@
+### Register Admin
+POST http://127.0.0.1:5000/register
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "123456",
+  "role": "Admin"
+}
+
+### Login Admin
+POST http://127.0.0.1:5000/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "123456"
+}
+### Use the token received from login in the Authorization header for the following requests
+POST http://127.0.0.1:5000/projects
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2Nzk1MzgwOCwianRpIjoiMGEwNTRkODItMGVmMC00Zjg5LTkzZDMtOGQ5Yjk3ZWMxNDY2IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3Njc5NTM4MDgsImNzcmYiOiJhNjc2M2Q5Mi04ZTk1LTQzNDEtYjdhMC1mMTEwYzNhOWYzNDMiLCJleHAiOjE3Njc5NTQ3MDgsInJvbGUiOiJBZG1pbiJ9.sxgDpogAdK56x7dh26ufitDQOwgStXM7GngvTjALCQc
+Content-Type: application/json
+
+{
+  "name": "Company Portal"
+}
+### View Project
+GET http://127.0.0.1:5000/projects
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2Nzk1MzgwOCwianRpIjoiMGEwNTRkODItMGVmMC00Zjg5LTkzZDMtOGQ5Yjk3ZWMxNDY2IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3Njc5NTM4MDgsImNzcmYiOiJhNjc2M2Q5Mi04ZTk1LTQzNDEtYjdhMC1mMTEwYzNhOWYzNDMiLCJleHAiOjE3Njc5NTQ3MDgsInJvbGUiOiJBZG1pbiJ9.sxgDpogAdK56x7dh26ufitDQOwgStXM7GngvTjALCQc
+Content-Type: application/json
+### Register User
+POST http://127.0.0.1:5000/register
+Content-Type: application/json
+
+{
+  "email": "member@test.com",
+  "password": "123456"
+}
+### Login User
+POST http://127.0.0.1:5000/login
+Content-Type: application/json
+
+{
+  "email": "member@test.com",
+  "password": "123456"
+}
+
+###Add Member to Project
+POST http://127.0.0.1:5000/projects/1/add-member
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2Nzk1NDA3MSwianRpIjoiZDYwYWQ4MzEtODBiYy00OTQxLThmNTMtZWZkYzFmMDY2MzExIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjIiLCJuYmYiOjE3Njc5NTQwNzEsImNzcmYiOiI3NTQ5YjgxNy04MWI4LTQ0ZDAtYmJjMS1iZmM3NDEyYjA1ZmQiLCJleHAiOjE3Njc5NTQ5NzEsInJvbGUiOiJNZW1iZXIifQ.WXTkXXqGu2JJuHs3BGMx5jFvK9gEm95zhGbmxWeG4Qw
+Content-Type: application/json
+{
+  "user_id": 2
+}
