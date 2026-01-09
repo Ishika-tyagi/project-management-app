@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+        .navbar { background: #333; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar button { background: #e74c3c; border: none; color: white; padding: 5px 10px; cursor: pointer; border-radius: 5px; }
+        .container { display: flex; flex-wrap: wrap; padding: 20px; gap: 20px; }
+        .card { background: white; padding: 15px; border-radius: 8px; flex: 1; min-width: 300px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .card h3 { margin-top: 0; }
+        input, select { padding: 5px; margin: 5px 0; width: calc(100% - 10px); }
+        button { margin: 5px 0; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 5px; border-bottom: 1px solid #ddd; cursor: pointer; }
+        li:hover { background: #f0f0f0; }
+        .task-item { display: flex; justify-content: space-between; align-items: center; }
+        .task-item button { margin-left: 5px; }
+        .hidden { display: none; }
+        .user-info { margin: 10px 20px; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>Project Manager</h2>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="user-info">
+    Welcome, <span id="userEmail"></span> (<span id="userRole"></span>) - ID: <span id="userId"></span>
+</div>
+
+<div class="container">
+
+    <!-- CREATE PROJECT (Admin Only) -->
+    <div class="card" id="createProjectCard">
+        <h3>Create New Project</h3>
+        <input id="newProjectName" placeholder="Enter project name">
+        <button onclick="createProject()">Create Project</button>
+    </div>
+
+    <!-- PROJECT LIST -->
+    <div class="card">
+        <h3>My Projects</h3>
+        <ul id="projects"></ul>
+    </div>
+
+    <!-- PROJECT DETAILS PANEL -->
+    <div class="card hidden" id="projectDetails">
+        <h3 id="projectTitle"></h3>
+
+        <!-- Admin Project Actions -->
+        <div id="adminActions" class="hidden">
+            <input id="editProjectName" placeholder="Edit Project Name">
+            <button onclick="updateProject()">Update Project</button>
+            <button onclick="deleteProject()">Delete Project</button>
+
+            <hr>
+
+            <h4>Manage Members</h4>
+            <input id="memberEmail" placeholder="Member Email">
+            <button onclick="addMember()">Add Member</button>
+            <button onclick="removeMember()">Remove Member</button>
+
+            <hr>
+
+            <h4>Create Task</h4>
+            <input id="taskTitle" placeholder="Task Title">
+            <input id="taskDesc" placeholder="Task Description">
+            <input id="taskAssigned" placeholder="Assign to Member Email (optional)">
+            <button onclick="createTask()">Create Task</button>
+        </div>
+
+        <!-- TASK LIST -->
+        <h4>Tasks</h4>
+        <ul id="tasks"></ul>
+    </div>
+
+    <!-- MY TASKS PANEL (Member Only) -->
+    <div class="card">
+        <h3>My Tasks</h3>
+        <ul id="myTasks"></ul>
+    </div>
+
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "/ui/login";
+
+const payload = JSON.parse(atob(token.split(".")[1]));
+const role = payload.role || "Member";
+const userId = payload.sub;
+const userEmail = payload.email || "";
+
+document.getElementById("userId").textContent = userId;
+document.getElementById("userRole").textContent = role;
+document.getElementById("userEmail").textContent = userEmail;
+
+// Hide Create Project card for non-admins
+if (role !== "Admin") document.getElementById("createProjectCard").style.display = "none";
+
+let selectedProjectId = null;
+
+// ---------------- INITIAL LOAD ----------------
+loadProjects();
+loadMyTasks();
+
+// ---------------- LOAD PROJECTS ----------------
+function loadProjects() {
+    fetch("/projects", { headers: { "Authorization": "Bearer " + token } })
+    .then(res => res.json())
+    .then(data => {
+        const projectsList = document.getElementById("projects");
+        projectsList.innerHTML = "";
+        data.forEach(p => {
+            const li = document.createElement("li");
+            li.textContent = `${p.name} (${p.role})`;
+            li.onclick = () => selectProject(p.id, p.name);
+            projectsList.appendChild(li);
+        });
+    });
+}
+
+// ---------------- SELECT PROJECT ----------------
+function selectProject(id, name) {
+    selectedProjectId = id;
+    const details = document.getElementById("projectDetails");
+    const projectTitle = document.getElementById("projectTitle");
+    details.classList.remove("hidden");
+    projectTitle.textContent = name;
+
+    if (role === "Admin") {
+        document.getElementById("adminActions").classList.remove("hidden");
+        document.getElementById("editProjectName").value = name;
+    } else {
+        document.getElementById("adminActions").classList.add("hidden");
+    }
+
+    loadTasks();
+}
+
+// ---------------- LOAD TASKS ----------------
+function loadTasks() {
+    fetch(`/projects/${selectedProjectId}/tasks`, { headers: { "Authorization": "Bearer " + token } })
+    .then(res => res.json())
+    .then(data => {
+        const tasksList = document.getElementById("tasks");
+        tasksList.innerHTML = "";
+        data.forEach(t => {
+            const li = document.createElement("li");
+            li.className = "task-item";
+            li.innerHTML = `<span>${t.title} (${t.status}) – Assigned: ${t.assigned_to_email || "None"}</span>`;
+            if (role === "Admin" || t.assigned_to === userId) {
+                const editBtn = document.createElement("button");
+                editBtn.textContent = "Edit";
+                editBtn.onclick = () => editTask(t.id, t.title, t.description, t.assigned_to_email);
+                li.appendChild(editBtn);
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "Delete";
+                deleteBtn.onclick = () => deleteTask(t.id);
+                li.appendChild(deleteBtn);
+            }
+            tasksList.appendChild(li);
+        });
+    });
+}
+
+// ---------------- LOAD MY TASKS ----------------
+function loadMyTasks() {
+    fetch("/my-tasks", { headers: { "Authorization": "Bearer " + token } })
+    .then(res => res.json())
+    .then(data => {
+        const myTasksList = document.getElementById("myTasks");
+        myTasksList.innerHTML = "";
+        data.forEach(t => {
+            myTasksList.innerHTML += `<li>${t.title} (${t.status}) – Project: ${t.project_id}</li>`;
+        });
+    });
+}
+
+// ---------------- PROJECT ACTIONS ----------------
+function createProject() {
+    const name = document.getElementById("newProjectName").value;
+    if (!name) return alert("Enter project name");
+
+    fetch("/projects", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+    }).then(res => res.json())
+      .then(() => {
+        document.getElementById("newProjectName").value = "";
+        loadProjects();
+    });
+}
+
+function updateProject() {
+    fetch(`/projects/${selectedProjectId}`, {
+        method: "PUT",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: document.getElementById("editProjectName").value })
+    }).then(loadProjects);
+}
+
+function deleteProject() {
+    fetch(`/projects/${selectedProjectId}`, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+    }).then(() => {
+        document.getElementById("projectDetails").classList.add("hidden");
+        selectedProjectId = null;
+        loadProjects();
+    });
+}
+
+// ---------------- MEMBER MANAGEMENT ----------------
+function addMember() {
+    const email = document.getElementById("memberEmail").value;
+    if (!email) return alert("Enter member email");
+
+    fetch(`/projects/${selectedProjectId}/add-member`, {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || data.error);
+        document.getElementById("memberEmail").value = "";
+    });
+}
+
+function removeMember() {
+    const email = document.getElementById("memberEmail").value;
+    if (!email) return alert("Enter member email");
+
+    fetch(`/projects/${selectedProjectId}/remove-member-by-email`, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || data.error);
+        document.getElementById("memberEmail").value = "";
+    });
+}
+
+// ---------------- TASK MANAGEMENT ----------------
+function createTask() {
+    const title = document.getElementById("taskTitle").value;
+    const desc = document.getElementById("taskDesc").value;
+    const assignedEmail = document.getElementById("taskAssigned").value || null;
+
+    fetch("/tasks", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            title, 
+            description: desc, 
+            project_id: selectedProjectId, 
+            assigned_email: assignedEmail 
+        })
+    }).then(() => {
+        document.getElementById("taskTitle").value = "";
+        document.getElementById("taskDesc").value = "";
+        document.getElementById("taskAssigned").value = "";
+        loadTasks();
+        loadMyTasks();
+    });
+}
+
+function editTask(id, oldTitle, oldDesc, oldAssigned) {
+    const newTitle = prompt("New title", oldTitle) || oldTitle;
+    const newDesc = prompt("New description", oldDesc) || oldDesc;
+    const newAssigned = prompt("Assign to Member Email", oldAssigned) || oldAssigned;
+
+    fetch(`/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle, description: newDesc, assigned_email: newAssigned })
+    }).then(() => { loadTasks(); loadMyTasks(); });
+}
+
+function deleteTask(id) {
+    fetch(`/tasks/${id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } })
+    .then(() => { loadTasks(); loadMyTasks(); });
+}
+
+// ---------------- LOGOUT ----------------
+function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "/ui/login";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Create Account</h2>
+        <p class="subtitle">Join and start managing projects</p>
+
+        <input id="email" type="email" placeholder="Email" required>
+        <input id="password" type="password" placeholder="Password" required>
+
+        <select id="role" class="auth-select">
+            <option value="Member">Member</option>
+            <option value="Admin">Admin</option>
+        </select>
+
+        <button onclick="register()">Register</button>
+
+        <p class="switch-link">
+            Already have an account?
+            <a href="/ui/login">Login</a>
+        </p>
+    </div>
+</div>
+
+<script>
+function register() {
+    fetch("/register", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            email: email.value,
+            password: password.value,
+            role: role.value
+        })
+    })
+    .then(res => res.json())
+    .then(() => {
+        alert("Registered successfully");
+        window.location.href = "/ui/login";
+    });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Login to manage your projects</p>
+
+        <input id="email" type="email" placeholder="Email" required>
+        <input id="password" type="password" placeholder="Password" required>
+
+        <button onclick="login()">Login</button>
+
+        <p class="switch-link">
+            Don’t have an account?
+            <a href="/ui/register">Register</a>
+        </p>
+    </div>
+</div>
+
+<script>
+function login() {
+    if (!email.value || !password.value) {
+        alert("Please enter email and password");
+        return;
+    }
+
+    fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            email: email.value,
+            password: password.value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.access_token) {
+            localStorage.setItem("token", data.access_token);
+            window.location.href = "/ui/dashboard";
+        } else {
+            alert(data.error || "Invalid credentials");
+        }
+    })
+    .catch(() => {
+        alert("Server error. Try again later.");
+    });
+}
+</script>
+
+</body>
+</html>
