@@ -61,10 +61,10 @@ python app.py
 The app will run at: http://127.0.0.1:5000
 
 ### 5.Usage
-Open the browser and go to /ui/register to create a new account.
-Login at /ui/login.
-Admin users can create projects, add members, and create tasks.
-Members can view assigned projects and tasks in the dashboard.
+-Open the browser and go to /ui/register to create a new account.
+-Login at /ui/login.
+-Admin users can create projects, add members, and create tasks.
+-Members can view assigned projects and tasks in the dashboard.
 
 ### Notes
 Database: SQLite is used (instance/database.db)
@@ -72,7 +72,7 @@ Ignored files: __pycache__/, instance/ folder, and environment files are ignored
 ### Optional Testing
 You can test API endpoints using the provided test.http file in VS Code with the REST Client extension.
 
-Author
+### Author
 Ishika Tyagi
 Full-Stack Developer | Project Management App
 
