@@ -27,36 +27,7 @@ It allows **Admins** to create projects, add members, and manage tasks, while **
 
 ## Project Structure
 
-# Project Management App
-
-A simple **Project Management Web Application** built with **Flask**, **SQLite**, and **JWT authentication**.  
-It allows **Admins** to create projects, add members, and manage tasks, while **Members** can view their assigned tasks and update their status.
-
----
-
-## Features
-
-- **Authentication**
-  - User registration and login with email/password
-  - Role-based access: Admin / Member
-  - JWT-based authentication
-- **Admin**
-  - Create, update, delete projects
-  - Add or remove members from projects
-  - Create, edit, delete tasks
-- **Member**
-  - View assigned projects and tasks
-  - Update task status
-- **Frontend**
-  - Responsive dashboard with project and task management
-  - Login and registration pages
-  - Task and project CRUD interfaces
-
----
-
-## Project Structure
-
-Project_Management/
+```Project_Management/
 ├── app.py # Main Flask app
 ├── extensions.py # DB and JWT initialization
 ├── models.py # Database models: User, Project, Task, ProjectMember
@@ -65,6 +36,7 @@ Project_Management/
 ├── instance/ # SQLite database files
 ├── test.http # Optional test HTTP requests
 └── README.md # This file
+```
 
 ---
 
