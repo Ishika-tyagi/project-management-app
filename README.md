@@ -45,7 +45,7 @@ It allows **Admins** to create projects, add members, and manage tasks, while **
 ### 1. Clone the repository
 
 bash
-git clone https://github.com/Ishika-tyagi/project-management-app-new.git
+git clone https://github.com/Ishika-tyagi/project-management-app.git
 cd project-management-app-new
 
 ### 2. Create a virtual environment
